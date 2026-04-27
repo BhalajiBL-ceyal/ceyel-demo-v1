@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ceyel — Process Intelligence Dashboard</title>
+  <meta name="description" content="Ceyel: Process Intelligence with Cryptographic Trust. Monitor processes, detect deviations, and verify event integrity via Merkle proofs."/>
+  <link rel="stylesheet" href="/static/style.css"/>
+  <!-- Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <!-- D3 for DFG -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+<div class="app">
+
+  <!-- ── Sidebar ─────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">⚙</div>
+      <div>
+        <div class="logo-text">Ceyel</div>
+        <div class="logo-sub">Process Intel</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <button class="nav-item active" onclick="navigate('overview')" id="nav-overview">
+        <span class="icon">📊</span><span>Dashboard</span>
+      </button>
+
+      <div class="nav-section-label">Process Mining</div>
+      <button class="nav-item" onclick="navigate('mining')" id="nav-mining">
+        <span class="icon">🔀</span><span>Process Graph</span>
+      </button>
+      <button class="nav-item" onclick="navigate('variants')" id="nav-variants">
+        <span class="icon">🌿</span><span>Variants</span>
+      </button>
+      <button class="nav-item" onclick="navigate('conformance')" id="nav-conformance">
+        <span class="icon">✅</span><span>Conformance</span>
+      </button>
+
+      <div class="nav-section-label">Intelligence</div>
+      <button class="nav-item" onclick="navigate('prediction')" id="nav-prediction">
+        <span class="icon">🔮</span><span>Predictions</span>
+      </button>
+
+      <div class="nav-section-label">Trust Layer</div>
+      <button class="nav-item" onclick="navigate('trust')" id="nav-trust">
+        <span class="icon">🔐</span><span>Merkle Trust</span>
+      </button>
+      <button class="nav-item" onclick="navigate('blockchain')" id="nav-blockchain">
+        <span class="icon">⛓</span><span>Blockchain</span>
+      </button>
+
+      <div class="nav-section-label">Data</div>
+      <button class="nav-item" onclick="navigate('ingest')" id="nav-ingest">
+        <span class="icon">📥</span><span>Ingest Events</span>
+      </button>
+      <button class="nav-item" onclick="navigate('events')" id="nav-events">
+        <span class="icon">📋</span><span>Event Log</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-status">
+      <span class="status-dot"></span>
+      <small style="color:var(--text-muted);font-size:12px">Backend Connected</small>
+    </div>
+  </aside>
+
+  <!-- ── Main ──────────────────────────────────────────────── -->
+  <main class="main">
+
+    <!-- ══ OVERVIEW ══════════════════════════════════════════ -->
+    <section class="section active" id="sec-overview">
+      <div class="page-header">
+        <h1 class="page-title">Process Intelligence Dashboard</h1>
+        <p class="page-subtitle">Real-time view of process health, deviations, and cryptographic integrity</p>
+      </div>
+
+      <div class="stats-grid" id="overview-stats">
+        <div class="stat-card stat-blue">
+          <div class="stat-label">Total Events</div>
+          <div class="stat-value" id="stat-events">—</div>
+          <div class="stat-sub">Ingested & hashed</div>
+        </div>
+        <div class="stat-card stat-cyan">
+          <div class="stat-label">Active Cases</div>
+          <div class="stat-value" id="stat-cases">—</div>
+          <div class="stat-sub">Process instances</div>
+        </div>
+        <div class="stat-card stat-amber">
+          <div class="stat-label">Avg Cycle Time</div>
+          <div class="stat-value" id="stat-cycle">—</div>
+          <div class="stat-sub">Hours per case</div>
+        </div>
+        <div class="stat-card stat-green">
+          <div class="stat-label">Conformance</div>
+          <div class="stat-value" id="stat-fitness">—</div>
+          <div class="stat-sub">Fitness score</div>
+        </div>
+        <div class="stat-card stat-purple">
+          <div class="stat-label">Variants</div>
+          <div class="stat-value" id="stat-variants">—</div>
+          <div class="stat-sub">Unique paths</div>
+        </div>
+        <div class="stat-card stat-red">
+          <div class="stat-label">Activities</div>
+          <div class="stat-value" id="stat-activities">—</div>
+          <div class="stat-sub">Unique steps</div>
+        </div>
+      </div>
+
+      <div class="card-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📈 Cycle Time per Case</div>
+          </div>
+          <canvas id="chart-cycletime" height="200"></canvas>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">⚠️ High Risk Cases</div>
+          </div>
+          <div id="risk-list" class="table-wrap"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🏁 Quick Actions</div>
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="loadSampleData()">📥 Load Sample Data</button>
+          <button class="btn btn-green"   onclick="commitBlock()">⛓ Commit Blockchain Block</button>
+          <button class="btn btn-ghost"   onclick="refreshAll()">🔄 Refresh All</button>
+          <button class="btn btn-ghost"   onclick="navigate('ingest')">✏️ Ingest Custom Event</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ PROCESS MINING (DFG) ═══════════════════════════════ -->
+    <section class="section" id="sec-mining">
+      <div class="page-header">
+        <h1 class="page-title">Process Graph</h1>
+        <p class="page-subtitle">Directly-Follows Graph (DFG) showing activity transitions and frequency</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🔀 Directly-Follows Graph <span class="badge" id="dfg-edge-count">— edges</span></div>
+          <button class="btn btn-ghost btn-sm" onclick="loadDFG()">🔄 Reload</button>
+        </div>
+        <div id="dfg-container">
+          <div class="loading-overlay"><div class="spinner"></div> Building graph…</div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:20px;font-size:12px;color:var(--text-muted)">
+          <span>⚫ Node size = activity frequency</span>
+          <span>→ Edge thickness = transition frequency</span>
+          <span>Drag to rearrange</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📊 Activity Frequency</div>
+        </div>
+        <canvas id="chart-activity" height="120"></canvas>
+      </div>
+    </section>
+
+    <!-- ══ VARIANTS ═══════════════════════════════════════════ -->
+    <section class="section" id="sec-variants">
+      <div class="page-header">
+        <h1 class="page-title">Process Variants</h1>
+        <p class="page-subtitle">Unique activity sequences across all cases, sorted by frequency</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🌿 Variants <span class="badge" id="variant-count">—</span></div>
+          <button class="btn btn-ghost btn-sm" onclick="loadVariants()">🔄 Reload</button>
+        </div>
+        <div class="table-wrap">
+          <table id="variants-table">
+            <thead><tr><th>#</th><th>Variant (Activity Sequence)</th><th>Count</th><th>Cases</th><th>Share</th></tr></thead>
+            <tbody id="variants-tbody"><tr><td colspan="5"><div class="loading-overlay"><div class="spinner"></div></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ CONFORMANCE ════════════════════════════════════════ -->
+    <section class="section" id="sec-conformance">
+      <div class="page-header">
+        <h1 class="page-title">Conformance Checking</h1>
+        <p class="page-subtitle">Compare actual process traces against the expected reference model</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🔧 Reference Model</div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+          <div class="form-group" style="flex:1;min-width:200px">
+            <label>Reference Sequence (comma-separated activities)</label>
+            <input type="text" id="ref-sequence"
+              value="Application Received,Document Verification,Credit Check,Risk Assessment,Approval Decision,Loan Disbursement"
+              placeholder="Activity A, Activity B, ..."/>
+          </div>
+          <button class="btn btn-primary" onclick="runConformance()">▶ Check Conformance</button>
+          <button class="btn btn-ghost" onclick="runDefaultConformance()">Use Default</button>
+        </div>
+      </div>
+
+      <div id="conformance-summary" style="display:none">
+        <div class="stats-grid">
+          <div class="stat-card stat-blue">
+            <div class="stat-label">Total Cases</div>
+            <div class="stat-value" id="conf-total">—</div>
+          </div>
+          <div class="stat-card stat-green">
+            <div class="stat-label">Conforming</div>
+            <div class="stat-value" id="conf-ok">—</div>
+          </div>
+          <div class="stat-card stat-red">
+            <div class="stat-label">Deviating</div>
+            <div class="stat-value" id="conf-dev">—</div>
+          </div>
+          <div class="stat-card stat-amber">
+            <div class="stat-label">Fitness Score</div>
+            <div class="stat-value" id="conf-fitness">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="conformance-results-card" style="display:none">
+        <div class="card-header">
+          <div class="card-title">📋 Deviation Report</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Case ID</th><th>Status</th><th>Missing Steps</th><th>Extra Steps</th><th>Order Violations</th></tr></thead>
+            <tbody id="conformance-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ PREDICTION ════════════════════════════════════════ -->
+    <section class="section" id="sec-prediction">
+      <div class="page-header">
+        <h1 class="page-title">Predictive Intelligence</h1>
+        <p class="page-subtitle">ML-powered remaining time and delay risk predictions per case</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🔮 Case Predictions <span class="badge" id="pred-count">—</span></div>
+          <button class="btn btn-ghost btn-sm" onclick="loadPredictions()">🔄 Reload</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Case ID</th><th>Progress</th><th>Elapsed (h)</th><th>Remaining (h)</th><th>Delay Risk</th><th>Risk Level</th></tr></thead>
+            <tbody id="prediction-tbody"><tr><td colspan="6"><div class="loading-overlay"><div class="spinner"></div></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📉 Delay Risk Distribution</div>
+        </div>
+        <canvas id="chart-risk" height="130"></canvas>
+      </div>
+    </section>
+
+    <!-- ══ TRUST LAYER ════════════════════════════════════════ -->
+    <section class="section" id="sec-trust">
+      <div class="page-header">
+        <h1 class="page-title">Cryptographic Trust</h1>
+        <p class="page-subtitle">SHA-256 event hashes + Merkle Tree integrity proofs</p>
+      </div>
+
+      <div class="merkle-root-display">
+        <div class="merkle-root-label">Current Merkle Root (all events)</div>
+        <div class="merkle-root-value" id="global-merkle-root">Loading…</div>
+        <div style="margin-top:12px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+          <span id="trust-event-count" style="font-size:12px;color:var(--text-muted)">— events committed</span>
+          <button class="btn btn-ghost btn-sm" onclick="loadTrustRoot()">🔄 Refresh Root</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🔍 Inclusion Proof Lookup</div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+          <div class="form-group" style="flex:1">
+            <label>Case ID</label>
+            <input type="text" id="proof-case-id" placeholder="e.g. LOAN-001"/>
+          </div>
+          <button class="btn btn-primary" onclick="lookupProof()">🔐 Get Proof</button>
+        </div>
+        <div id="proof-result" style="margin-top:16px"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🗂 Event Hash Audit Log</div>
+          <button class="btn btn-ghost btn-sm" onclick="loadHashes()">🔄 Load Hashes</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Case ID</th><th>Activity</th><th>SHA-256 Hash</th></tr></thead>
+            <tbody id="hash-tbody"><tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:30px">Click "Load Hashes" to view</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ BLOCKCHAIN ════════════════════════════════════════ -->
+    <section class="section" id="sec-blockchain">
+      <div class="page-header">
+        <h1 class="page-title">Blockchain Ledger</h1>
+        <p class="page-subtitle">Append-only local ledger of Merkle root commits with chain integrity verification</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">⛓ Ledger Actions</div>
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <button class="btn btn-green" onclick="commitBlock()">⚡ Commit New Block</button>
+          <button class="btn btn-ghost" onclick="verifyChain()">🛡 Verify Chain Integrity</button>
+          <button class="btn btn-ghost" onclick="loadChain()">🔄 Reload Chain</button>
+        </div>
+        <div id="chain-integrity-result" style="margin-top:16px"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📦 Block Explorer <span class="badge" id="chain-length">—</span></div>
+        </div>
+        <div id="blockchain-blocks">
+          <div class="loading-overlay"><div class="spinner"></div> Loading chain…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ INGEST ═════════════════════════════════════════════ -->
+    <section class="section" id="sec-ingest">
+      <div class="page-header">
+        <h1 class="page-title">Ingest Events</h1>
+        <p class="page-subtitle">Submit process events manually or load the sample dataset</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📤 Quick Load — Sample Dataset</div>
+        </div>
+        <p style="color:var(--text-secondary);font-size:14px;margin-bottom:16px">
+          Load 60 pre-built loan approval events (10 cases) with deliberate deviations for demonstration.
+        </p>
+        <button class="btn btn-primary" onclick="loadSampleData()">📥 Load Sample Data</button>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">✏️ Ingest Single Event</div>
+        </div>
+        <form id="ingest-form" onsubmit="ingestEvent(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="ev-case-id">Case ID *</label>
+              <input id="ev-case-id" type="text" placeholder="e.g. LOAN-011" required/>
+            </div>
+            <div class="form-group">
+              <label for="ev-activity">Activity *</label>
+              <input id="ev-activity" type="text" placeholder="e.g. Credit Check" required/>
+            </div>
+            <div class="form-group">
+              <label for="ev-timestamp">Timestamp *</label>
+              <input id="ev-timestamp" type="datetime-local" required/>
+            </div>
+            <div class="form-group">
+              <label for="ev-actor">Actor</label>
+              <input id="ev-actor" type="text" placeholder="e.g. agent_ali"/>
+            </div>
+            <div class="form-group">
+              <label for="ev-cost">Cost ($)</label>
+              <input id="ev-cost" type="number" step="0.01" placeholder="0.00" value="0"/>
+            </div>
+            <div class="form-group">
+              <label for="ev-duration">Duration (min)</label>
+              <input id="ev-duration" type="number" step="1" placeholder="0" value="0"/>
+            </div>
+          </div>
+          <div style="margin-top:16px;display:flex;gap:10px">
+            <button class="btn btn-primary" type="submit">Submit Event</button>
+            <button class="btn btn-ghost" type="button" onclick="clearForm()">Clear</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ══ EVENTS LOG ═════════════════════════════════════════ -->
+    <section class="section" id="sec-events">
+      <div class="page-header">
+        <h1 class="page-title">Event Log</h1>
+        <p class="page-subtitle">All ingested process events with SHA-256 integrity hashes</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📋 All Events <span class="badge" id="events-count">—</span></div>
+          <button class="btn btn-ghost btn-sm" onclick="loadEvents()">🔄 Reload</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Case ID</th><th>Activity</th><th>Actor</th><th>Timestamp</th><th>Cost</th><th>Duration (min)</th><th>Hash (short)</th></tr></thead>
+            <tbody id="events-tbody"><tr><td colspan="8"><div class="loading-overlay"><div class="spinner"></div></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
