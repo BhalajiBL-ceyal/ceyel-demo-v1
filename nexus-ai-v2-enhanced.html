@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS AI v2 — Advanced Intelligence Operating System</title>
+<style>
+:root{
+  --bg:#070711;--bg2:#0c0c1b;--bg3:#111128;
+  --surface:rgba(255,255,255,0.04);--surface-h:rgba(255,255,255,0.07);
+  --border:rgba(255,255,255,0.08);--border-b:rgba(255,255,255,0.16);
+  --text:#e2e8f0;--text-m:#64748b;--text-d:#94a3b8;
+  --accent:#818cf8;--a2:#22d3ee;--a3:#34d399;--a4:#f59e0b;--a5:#f472b6;
+  --danger:#f87171;--sw:280px;--r:12px;--r2:20px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(129,140,248,.06) 0%,transparent 55%),radial-gradient(ellipse at 80% 10%,rgba(34,211,238,.04) 0%,transparent 45%),radial-gradient(ellipse at 60% 90%,rgba(244,114,182,.03) 0%,transparent 40%);pointer-events:none;z-index:0;}
+#app{display:flex;min-height:100vh;position:relative;}
+
+/* SIDEBAR */
+#sidebar{width:var(--sw);height:100vh;position:fixed;left:0;top:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;transition:transform .3s ease;overflow-y:auto;overflow-x:hidden;}
+#sidebar::-webkit-scrollbar{width:4px;}
+#sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:99px;}
+.sb-logo{padding:22px 18px 16px;border-bottom:1px solid var(--border);}
+.sb-mark{font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);opacity:.6;margin-bottom:3px;}
+.sb-title{font-size:21px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.5px;}
+.sb-sub{font-size:9px;color:var(--text-m);letter-spacing:.12em;text-transform:uppercase;margin-top:1px;}
+.sb-xp{padding:13px 18px;border-bottom:1px solid var(--border);}
+.xp-row{display:flex;justify-content:space-between;font-size:10px;color:var(--text-m);margin-bottom:5px;}
+.xp-track{height:4px;background:var(--border);border-radius:99px;overflow:hidden;}
+.xp-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--a2));border-radius:99px;transition:width .5s ease;}
+.sb-nav{padding:10px 0;flex:1;}
+.sb-section{padding:10px 18px 3px;font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--text-m);}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;cursor:pointer;font-size:13px;color:var(--text-d);transition:all .15s;border-left:3px solid transparent;margin:1px 0;user-select:none;}
+.nav-item:hover{background:var(--surface);color:var(--text);}
+.nav-item.active{background:var(--surface);color:var(--accent);border-left-color:var(--accent);font-weight:600;}
+.nav-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0;}
+.sb-streak{margin:0 14px 14px;padding:9px 12px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);border-radius:var(--r);display:flex;align-items:center;gap:7px;font-size:11px;color:var(--a4);}
+
+/* MAIN */
+#main{margin-left:var(--sw);flex:1;min-height:100vh;display:flex;flex-direction:column;}
+#topbar{position:sticky;top:0;z-index:50;background:rgba(7,7,17,.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:11px 28px;display:flex;align-items:center;gap:14px;}
+.tb-title{font-size:14px;font-weight:700;flex:1;color:var(--text);}
+.search-wrap{display:flex;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 11px;gap:8px;width:260px;transition:all .2s;}
+.search-wrap:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(129,140,248,.1);}
+.search-wrap input{background:none;border:none;outline:none;color:var(--text);font-size:12px;width:100%;}
+.search-wrap input::placeholder{color:var(--text-m);}
+.tb-stats{display:flex;gap:8px;align-items:center;}
+.stat-chip{display:flex;align-items:center;gap:5px;padding:5px 9px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-size:11px;font-weight:600;white-space:nowrap;}
+#menu-btn{display:none;background:none;border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);cursor:pointer;font-size:15px;}
+
+/* PAGE */
+#page{flex:1;padding:28px 28px 48px;max-width:1600px;width:100%;}
+.fade-in{animation:fadeIn .3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;transition:border-color .2s;}
+.card:hover{border-color:var(--border-b);}
+.card-glass{background:rgba(255,255,255,.025);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:var(--r2);}
+
+/* GRIDS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+
+/* STAT PANELS */
+.stat-p{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;display:flex;align-items:center;gap:14px;}
+.stat-ico{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
+.stat-v{font-size:23px;font-weight:800;line-height:1;}
+.stat-l{font-size:10px;color:var(--text-m);margin-top:3px;text-transform:uppercase;letter-spacing:.05em;}
+
+/* PHASE CARDS */
+.phase-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;transition:border-color .2s,transform .15s;}
+.phase-card:hover{border-color:var(--border-b);}
+.ph-head{padding:18px 22px;display:flex;align-items:center;gap:14px;cursor:pointer;user-select:none;}
+.ph-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.ph-info{flex:1;min-width:0;}
+.ph-num{font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text-m);margin-bottom:2px;}
+.ph-title{font-size:15px;font-weight:700;color:var(--text);}
+.ph-sub{font-size:11px;color:var(--text-m);margin-top:1px;}
+.ph-meta{text-align:right;flex-shrink:0;}
+.ph-count{font-size:13px;font-weight:700;}
+.ph-xp{font-size:9px;color:var(--text-m);margin-top:2px;}
+.ph-arr{font-size:13px;color:var(--text-m);margin-top:5px;transition:transform .25s;}
+.ph-arr.open{transform:rotate(180deg);}
+.ph-bar{height:3px;background:var(--border);}
+.ph-bar-fill{height:100%;border-radius:0;transition:width .4s ease;}
+.ph-body{max-height:0;overflow:hidden;transition:max-height .45s ease;}
+.ph-body.open{max-height:4000px;}
+.ph-inner{padding:0 22px 20px;}
+
+/* TOPICS */
+.topic-row{display:flex;align-items:flex-start;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);}
+.topic-row:last-child{border-bottom:none;}
+.t-check{width:18px;height:18px;border-radius:5px;border:2px solid var(--border-b);cursor:pointer;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:all .15s;font-size:10px;}
+.t-check.done{background:var(--a3);border-color:var(--a3);color:#fff;}
+.t-text{flex:1;min-width:0;}
+.t-name{font-size:13px;font-weight:600;}
+.t-desc{font-size:11px;color:var(--text-m);margin-top:3px;line-height:1.5;}
+.t-res{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;}
+.rtag{padding:3px 7px;border-radius:4px;font-size:10px;font-weight:600;text-decoration:none;cursor:pointer;transition:opacity .15s;letter-spacing:.03em;}
+.rtag:hover{opacity:.7;}
+.r-book{background:rgba(129,140,248,.14);color:var(--accent);}
+.r-course{background:rgba(34,211,238,.14);color:var(--a2);}
+.r-video{background:rgba(244,114,182,.14);color:var(--a5);}
+.r-paper{background:rgba(245,158,11,.14);color:var(--a4);}
+.r-practice{background:rgba(52,211,153,.14);color:var(--a3);}
+.r-github{background:rgba(255,255,255,.07);color:var(--text-d);}
+.r-blog{background:rgba(52,211,153,.1);color:var(--a3);}
+.bmark-btn{background:none;border:none;cursor:pointer;color:var(--text-m);font-size:14px;padding:3px;flex-shrink:0;transition:color .15s;}
+.bmark-btn:hover{color:var(--a4);}
+
+/* TABS */
+.tabs{display:flex;gap:3px;border-bottom:1px solid var(--border);margin-bottom:22px;flex-wrap:wrap;}
+.tab{padding:8px 15px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text-m);border-bottom:2px solid transparent;transition:all .15s;margin-bottom:-1px;user-select:none;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab:hover{color:var(--text);}
+
+/* BUTTONS */
+.btn{padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:6px;}
+.btn-p{background:var(--accent);color:#fff;}
+.btn-p:hover{opacity:.85;transform:translateY(-1px);}
+.btn-g{background:var(--surface);color:var(--text-d);border:1px solid var(--border);}
+.btn-g:hover{background:var(--surface-h);color:var(--text);}
+.btn-danger{background:rgba(248,113,113,.12);color:var(--danger);border:1px solid rgba(248,113,113,.25);}
+
+/* INPUTS */
+input[type="text"],input[type="date"],select{background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:8px 11px;outline:none;width:100%;transition:border-color .2s;}
+input:focus,select:focus{border-color:var(--accent);}
+input::placeholder{color:var(--text-m);}
+textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:12px;padding:11px;resize:vertical;outline:none;line-height:1.6;font-family:inherit;transition:border-color .2s;}
+textarea:focus{border-color:var(--accent);}
+
+/* TOAST */
+#toast{position:fixed;bottom:22px;right:22px;background:var(--bg3);border:1px solid var(--border-b);border-radius:var(--r);padding:11px 18px;font-size:12px;font-weight:600;z-index:9999;transform:translateY(80px);opacity:0;transition:all .3s ease;max-width:300px;}
+#toast.show{transform:translateY(0);opacity:1;}
+
+/* OVERLAY */
+#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99;}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.09);border-radius:99px;}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.18);}
+
+/* UTIL */
+h1{font-size:25px;font-weight:800;letter-spacing:-.4px;}
+h2{font-size:18px;font-weight:700;}
+.mb4{margin-bottom:4px;}.mb8{margin-bottom:8px;}.mb12{margin-bottom:12px;}.mb16{margin-bottom:16px;}.mb20{margin-bottom:20px;}.mb24{margin-bottom:24px;}.mb28{margin-bottom:28px;}.mb32{margin-bottom:32px;}
+.muted{color:var(--text-m);}
+.small{font-size:11px;}
+.mono{font-family:'SF Mono','Fira Code',monospace;font-size:11px;}
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.sec-title{font-size:16px;font-weight:700;}
+.divider{height:1px;background:var(--border);margin:20px 0;}
+
+/* TRACK ITEMS */
+.track-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;display:flex;align-items:flex-start;gap:12px;}
+.track-item.completed{opacity:.6;background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.2);}
+.track-icon{font-size:18px;flex-shrink:0;margin-top:2px;}
+.track-content{flex:1;min-width:0;}
+.track-title{font-size:12px;font-weight:700;margin-bottom:3px;}
+.track-meta{font-size:10px;color:var(--text-m);}
+
+/* KNOWLEDGE GRAPH */
+.kn-wrap{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0;}
+.kn-node{padding:6px 12px;background:var(--bg3);border:1px solid var(--accent);border-radius:6px;font-size:11px;font-weight:600;color:var(--accent);cursor:pointer;transition:all .15s;}
+.kn-node:hover{background:rgba(129,140,248,.15);}
+.kn-node.unlocked{background:rgba(52,211,153,.15);border-color:var(--a3);color:var(--a3);}
+
+/* MASTERY METER */
+.mastery-meter{width:100%;height:8px;background:var(--border);border-radius:99px;overflow:hidden;margin:10px 0;}
+.mastery-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--a2));border-radius:99px;transition:width .5s ease;}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  #sidebar{transform:translateX(-100%);}
+  #sidebar.mob-open{transform:translateX(0);}
+  #main{margin-left:0;}
+  #menu-btn{display:block;}
+  .g2,.g3,.g4{grid-template-columns:1fr;}
+  .tb-stats .stat-chip:nth-child(3){display:none;}
+  .search-wrap{width:180px;}
+  #page{padding:16px 14px 40px;}
+}
+@media(max-width:480px){
+  .search-wrap{width:140px;}
+  .stat-chip{font-size:10px;padding:4px 7px;}
+}
+</style>
+</head>
+<body>
+<div id="toast">✓ Done</div>
+<div id="overlay" onclick="closeMob()"></div>
+<div id="app">
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-mark">Advanced v2.0</div>
+    <div class="sb-title">NEXUS AI</div>
+    <div class="sb-sub">Enterprise AI OS</div>
+  </div>
+  <div class="sb-xp">
+    <div class="xp-row"><span id="lvl-lbl">Level 1 — Beginner</span><span id="xp-lbl">0/500 XP</span></div>
+    <div class="xp-track"><div class="xp-fill" id="xp-bar" style="width:0%"></div></div>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-section">Core</div>
+    <div class="nav-item active" id="nav-dashboard" onclick="nav('dashboard',this)"><span class="nav-icon">⚡</span>Dashboard</div>
+    <div class="nav-item" id="nav-roadmap" onclick="nav('roadmap',this)"><span class="nav-icon">🗺️</span>Roadmap</div>
+    <div class="nav-item" id="nav-tracks" onclick="nav('tracks',this)"><span class="nav-icon">🔄</span>Learning Tracks</div>
+    <div class="nav-item" id="nav-projects" onclick="nav('projects',this)"><span class="nav-icon">💡</span>Projects</div>
+    <div class="sb-section">Advanced</div>
+    <div class="nav-item" id="nav-systems" onclick="nav('systems',this)"><span class="nav-icon">🏗️</span>AI Systems</div>
+    <div class="nav-item" id="nav-optimization" onclick="nav('optimization',this)"><span class="nav-icon">🚀</span>Optimization</div>
+    <div class="nav-item" id="nav-research" onclick="nav('research',this)"><span class="nav-icon">🔬</span>Research Lab</div>
+    <div class="sb-section">Tools</div>
+    <div class="nav-item" id="nav-analytics" onclick="nav('analytics',this)"><span class="nav-icon">📊</span>Analytics</div>
+    <div class="nav-item" id="nav-notes" onclick="nav('notes',this)"><span class="nav-icon">📝</span>Notes</div>
+    <div class="nav-item" id="nav-settings" onclick="nav('settings',this)"><span class="nav-icon">⚙️</span>Settings</div>
+  </div>
+  <div id="streak-badge" class="sb-streak" style="display:none">🔥 <span id="streak-n">0</span>-day streak</div>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="topbar">
+    <button id="menu-btn" onclick="toggleMob()">☰</button>
+    <div class="tb-title" id="tb-title">⚡ Dashboard</div>
+    <div style="flex:1"></div>
+    <div class="tb-stats">
+      <div class="stat-chip">⚡ <span id="tb-xp">0</span> XP</div>
+      <div class="stat-chip">✅ <span id="tb-done">0</span></div>
+      <div class="stat-chip">🔥 <span id="tb-str">0</span></div>
+    </div>
+  </div>
+  <div id="page" class="fade-in"></div>
+</div>
+</div>
+
+<script>
+/* =============================================
+   ADVANCED STATE & TRACKS
+   ============================================= */
+
+const XP_LEVELS=[0,500,1200,2200,3800,6000,9000,13000,18500,25500,35000,50000];
+const LEVEL_NAMES=['','Beginner','Programmer','ML Engineer','Deep Learning Engineer','LLM Engineer','Agent Engineer','Systems Engineer','CUDA Engineer','Research Engineer','Research Scientist','AI Architect'];
+
+const DEF={
+  xp:0,level:1,streak:0,lastActive:null,
+  done:{},notes:[],bookmarks:[],plan:{},journal:[],
+  tracks:{ai_product:0,ai_economics:0,scientific:0,opensource:0,research_repro:0,innovation:0,inference:0,systems:0,hardware:0,quantum:0},
+  papers_read:[],projects_completed:[],experiments:[]
+};
+let S={...DEF};
+
+/* LEARNING TRACKS */
+const TRACKS={
+  ai_product:{name:'🎯 AI Product Engineering',icon:'🎯',desc:'Build profitable AI products',subtracks:[
+    {id:'product-design',name:'Product Design for AI',level:'beginner'},
+    {id:'mvp-dev',name:'MVP Development',level:'intermediate'},
+    {id:'saas-dev',name:'AI SaaS Development',level:'advanced'},
+    {id:'pmf',name:'Product-Market Fit',level:'advanced'}
+  ]},
+  ai_economics:{name:'💰 AI Economics',icon:'💰',desc:'Understand AI business models',subtracks:[
+    {id:'compute-costs',name:'GPU Cost Optimization',level:'beginner'},
+    {id:'token-econ',name:'Token Economics',level:'intermediate'},
+    {id:'pricing',name:'Pricing Strategies',level:'advanced'}
+  ]},
+  scientific:{name:'🔬 Scientific Computing',icon:'🔬',desc:'Low-level numerical computing',subtracks:[
+    {id:'numpy-internals',name:'NumPy Deep Dive',level:'beginner'},
+    {id:'blas-lapack',name:'BLAS/LAPACK',level:'intermediate'},
+    {id:'tensor-engine',name:'Build Tensor Engine',level:'advanced'}
+  ]},
+  opensource:{name:'🐙 Open Source Mastery',icon:'🐙',desc:'Contribute to major projects',subtracks:[
+    {id:'pytorch-contrib',name:'PyTorch Contributing',level:'intermediate'},
+    {id:'huggingface-contrib',name:'HuggingFace Contributing',level:'intermediate'},
+    {id:'llm-contrib',name:'LLM Framework Contributing',level:'advanced'}
+  ]},
+  research_repro:{name:'📋 Research Reproduction',icon:'📋',desc:'Reproduce landmark papers',subtracks:[
+    {id:'classic-papers',name:'Classic Paper Reproduction',level:'intermediate'},
+    {id:'recent-papers',name:'Recent Paper Reproduction',level:'advanced'},
+    {id:'novel-ideas',name:'Novel Idea Exploration',level:'advanced'}
+  ]},
+  innovation:{name:'💡 Innovation Lab',icon:'💡',desc:'Discover new AI methods',subtracks:[
+    {id:'problem-discovery',name:'Problem Discovery',level:'intermediate'},
+    {id:'hypothesis-design',name:'Hypothesis Design',level:'advanced'},
+    {id:'publication',name:'Research Publication',level:'research'}
+  ]},
+  inference:{name:'⚡ Inference Engineering',icon:'⚡',desc:'Optimize LLM serving',subtracks:[
+    {id:'vllm',name:'vLLM Mastery',level:'intermediate'},
+    {id:'serving-systems',name:'Production Serving',level:'advanced'},
+    {id:'inference-kernels',name:'Custom Kernels',level:'research'}
+  ]},
+  systems:{name:'🏗️ Systems Architecture',icon:'🏗️',desc:'Enterprise AI infrastructure',subtracks:[
+    {id:'system-design',name:'System Design Patterns',level:'intermediate'},
+    {id:'reliability',name:'Reliability Engineering',level:'advanced'},
+    {id:'scalability',name:'Petabyte-Scale Systems',level:'research'}
+  ]},
+  hardware:{name:'🔧 Hardware Engineering',icon:'🔧',desc:'CPU, GPU, ASIC optimization',subtracks:[
+    {id:'cpu-arch',name:'CPU Architecture',level:'intermediate'},
+    {id:'gpu-arch',name:'GPU Architecture Deep Dive',level:'advanced'},
+    {id:'asic-design',name:'ASIC Design Basics',level:'research'}
+  ]},
+  quantum:{name:'⚛️ Quantum AI',icon:'⚛️',desc:'Quantum computing fundamentals',subtracks:[
+    {id:'quantum-basics',name:'Quantum Mechanics Primer',level:'beginner'},
+    {id:'quantum-ml',name:'Quantum Machine Learning',level:'intermediate'},
+    {id:'hybrid-quantum',name:'Hybrid Quantum-Classical',level:'advanced'}
+  ]}
+};
+
+/* =============================================
+   STATE HELPERS
+   ============================================= */
+function loadS(){try{const d=localStorage.getItem('nexus_v2_adv');if(d)S={...DEF,...JSON.parse(d)};}catch(e){}}
+function saveS(){try{localStorage.setItem('nexus_v2_adv',JSON.stringify(S));}catch(e){}}
+function getLevel(){let l=1;for(let i=1;i<XP_LEVELS.length;i++){if(S.xp>=XP_LEVELS[i])l=i+1;else break;}return Math.min(l,XP_LEVELS.length-1);}
+function xpForLevel(l){return XP_LEVELS[l]||XP_LEVELS[XP_LEVELS.length-1];}
+function addXP(amt){S.xp+=amt;const nl=getLevel();if(nl>S.level){S.level=nl;toast(`🎉 Level ${nl}!`);}saveS();updateTopBar();}
+
+function updateStreak(){
+ const td=new Date().toDateString();
+ const yd=new Date(Date.now()-864e5).toDateString();
+ if(S.lastActive===td)return;
+ S.streak=(S.lastActive===yd)?S.streak+1:1;
+ S.lastActive=td;saveS();
+}
+
+/* =============================================
+   UI UTILITIES
+   ============================================= */
+let toastTimer=null;
+function toast(msg){
+ const el=document.getElementById('toast');
+ el.textContent=msg;el.classList.add('show');
+ clearTimeout(toastTimer);
+ toastTimer=setTimeout(()=>el.classList.remove('show'),2800);
+}
+
+function updateTopBar(){
+ const l=getLevel();S.level=l;
+ const xpCur=XP_LEVELS[l-1]||0;const xpNext=xpForLevel(l);
+ const pct=Math.min(100,((S.xp-xpCur)/(xpNext-xpCur))*100);
+ document.getElementById('xp-bar').style.width=pct+'%';
+ document.getElementById('xp-lbl').textContent=`${S.xp.toLocaleString()}/${xpNext.toLocaleString()} XP`;
+ document.getElementById('lvl-lbl').textContent=`Level ${l} — ${LEVEL_NAMES[l]||'Legend'}`;
+ document.getElementById('tb-xp').textContent=S.xp.toLocaleString();
+ document.getElementById('tb-done').textContent=Object.keys(S.done).length;
+ document.getElementById('tb-str').textContent=S.streak;
+ const sb=document.getElementById('streak-badge');
+ document.getElementById('streak-n').textContent=S.streak;
+ sb.style.display=S.streak>0?'flex':'none';
+}
+
+function toggleMob(){document.getElementById('sidebar').classList.toggle('mob-open');document.getElementById('overlay').style.display='block';}
+function closeMob(){document.getElementById('sidebar').classList.remove('mob-open');document.getElementById('overlay').style.display='none';}
+
+/* =============================================
+   NAVIGATION
+   ============================================= */
+let curPage='dashboard';
+
+function nav(page,el){
+ curPage=page;
+ document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+ if(el)el.classList.add('active');
+ const titles={dashboard:'⚡ Dashboard',roadmap:'🗺️ Learning Roadmap',tracks:'🔄 Advanced Tracks',projects:'💡 Projects',systems:'🏗️ AI Systems',optimization:'🚀 Optimization',research:'🔬 Research Lab',analytics:'📊 Analytics',notes:'📝 Notes',settings:'⚙️ Settings'};
+ document.getElementById('tb-title').textContent=titles[page]||page;
+ const pc=document.getElementById('page');
+ pc.classList.remove('fade-in');void pc.offsetWidth;pc.classList.add('fade-in');
+ renderPage(page);closeMob();
+}
+
+function renderPage(p){
+ const el=document.getElementById('page');
+ const fns={dashboard:rDash,roadmap:rRoadmap,tracks:rTracks,projects:rProjects,systems:rSystems,optimization:rOptimization,research:rResearch,analytics:rAnalytics,notes:rNotes,settings:rSettings};
+ el.innerHTML=(fns[p]||rDash)();
+}
+
+/* =============================================
+   RENDERERS
+   ============================================= */
+
+function rDash(){
+ const l=getLevel();
+ const xpC=XP_LEVELS[l-1]||0,xpN=xpForLevel(l);
+ const lp=Math.min(100,Math.round((S.xp-xpC)/(xpN-xpC)*100));
+ 
+ return `<div class="mb24">
+  <h1 class="mb4">Welcome back 👋</h1>
+  <p class="muted small">Enterprise-grade AI learning system with advanced tracks and mastery metrics.</p>
+ </div>
+ <div class="g4 mb24">
+  <div class="stat-p" style="border-left:3px solid var(--accent)">
+   <div class="stat-ico" style="background:rgba(129,140,248,.12)">⚡</div>
+   <div><div class="stat-v" style="color:var(--accent)">${S.xp.toLocaleString()}</div><div class="stat-l">Total XP</div></div>
+  </div>
+  <div class="stat-p" style="border-left:3px solid var(--a2)">
+   <div class="stat-ico" style="background:rgba(34,211,238,.12)">🎓</div>
+   <div><div class="stat-v" style="color:var(--a2)">Level ${l}</div><div class="stat-l">${LEVEL_NAMES[l]||'Legend'}</div></div>
+  </div>
+  <div class="stat-p" style="border-left:3px solid var(--a3)">
+   <div class="stat-ico" style="background:rgba(52,211,153,.12)">📚</div>
+   <div><div class="stat-v" style="color:var(--a3)">${S.papers_read.length}</div><div class="stat-l">Papers Read</div></div>
+  </div>
+  <div class="stat-p" style="border-left:3px solid var(--a4)">
+   <div class="stat-ico" style="background:rgba(245,158,11,.12)">🔥</div>
+   <div><div class="stat-v" style="color:var(--a4)">${S.streak}</div><div class="stat-l">Day Streak</div></div>
+  </div>
+ </div>
+ <div class="g2 mb24">
+  <div class="card">
+   <div style="font-size:13px;font-weight:700;margin-bottom:14px">📊 Learning Tracks Progress</div>
+   ${Object.entries(TRACKS).map(([k,v])=>{
+     const prog=S.tracks[k]||0;
+     return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg3);border-radius:8px;margin-bottom:8px">
+      <span style="font-size:18px">${v.icon}</span>
+      <div style="flex:1">
+       <div style="font-size:11px;font-weight:700;margin-bottom:3px">${v.name}</div>
+       <div class="mastery-meter"><div class="mastery-fill" style="width:${prog}%"></div></div>
+      </div>
+      <span style="font-size:10px;font-weight:700;color:var(--accent)">${prog}%</span>
+     </div>`;
+   }).join('')}
+  </div>
+  <div class="card">
+   <div style="font-size:13px;font-weight:700;margin-bottom:14px">🎯 Quick Actions</div>
+   <button class="btn btn-p" style="width:100%;justify-content:center;margin-bottom:8px" onclick="nav('tracks',document.getElementById('nav-tracks'))">Start Learning Track</button>
+   <button class="btn btn-g" style="width:100%;justify-content:center;margin-bottom:8px" onclick="nav('research',document.getElementById('nav-research'))">Research Lab</button>
+   <button class="btn btn-g" style="width:100%;justify-content:center" onclick="nav('projects',document.getElementById('nav-projects'))">Browse Projects</button>
+  </div>
+ </div>
+ <div class="card">
+  <div style="font-size:13px;font-weight:700;margin-bottom:14px">🏆 Today's Focus</div>
+  <p class="small muted">Continue with your current learning track or explore a new specialty area. Consistency compounds exponentially.</p>
+ </div>`;
+}
+
+function rTracks(){
+ return `<h1 class="mb8">Advanced Learning Tracks</h1>
+ <p class="muted small mb20">Specialized learning paths for different AI specializations. Mix and match based on your goals.</p>
+ <div class="g2">
+  ${Object.entries(TRACKS).map(([k,v])=>{
+    const prog=S.tracks[k]||0;
+    return `<div class="card">
+     <div style="font-size:18px;margin-bottom:8px">${v.icon}</div>
+     <div style="font-size:14px;font-weight:700;margin-bottom:4px">${v.name}</div>
+     <p class="small muted mb12">${v.desc}</p>
+     <div class="mastery-meter"><div class="mastery-fill" style="width:${prog}%"></div></div>
+     <div style="display:flex;justify-content:space-between;margin-top:10px">
+      <span class="small muted">${v.subtracks.length} subtracks</span>
+      <span class="small" style="color:var(--accent);font-weight:700">${prog}% complete</span>
+     </div>
+     <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
+      ${v.subtracks.map(st=>`<div style="display:flex;align-items:center;gap:8px;padding:6px;margin-bottom:4px;background:var(--bg3);border-radius:6px;font-size:10px">
+       <span style="width:16px;height:16px;border-radius:4px;background:rgba(52,211,153,.2);border:1px solid var(--a3);display:flex;align-items:center;justify-content:center;font-size:8px">✓</span>
+       <span style="flex:1">${st.name}</span>
+       <span style="color:var(--text-m)">${st.level}</span>
+      </div>`).join('')}
+     </div>
+    </div>`;
+  }).join('')}
+ </div>`;
+}
+
+function rRoadmap(){
+ return `<h1 class="mb8">31-Phase Learning Roadmap</h1>
+ <p class="muted small mb20">Complete curriculum from beginner to AI architect and research scientist.</p>
+ <div class="card">
+  <div style="text-align:center;padding:40px">
+   <p class="muted">Phase roadmap visualization (expand for full curriculum)</p>
+   <button class="btn btn-p" onclick="nav('tracks',document.getElementById('nav-tracks'))" style="margin-top:16px">→ View Interactive Tracks</button>
+  </div>
+ </div>`;
+}
+
+function rProjects(){
+ return `<h1 class="mb8">AI Projects Portfolio</h1>
+ <p class="muted small mb20">Build 50+ projects spanning all difficulty levels.</p>
+ <div class="g3">
+  <div class="card">
+   <div style="font-size:18px;margin-bottom:8px">🟢</div>
+   <div style="font-size:14px;font-weight:700;margin-bottom:4px">Beginner (8 projects)</div>
+   <p class="small muted">Linear regression, classification, basic NNs, simple APIs</p>
+   <div class="mastery-meter" style="margin-top:12px"><div class="mastery-fill" style="width:0%;background:var(--a3)"></div></div>
+  </div>
+  <div class="card">
+   <div style="font-size:18px;margin-bottom:8px">🟡</div>
+   <div style="font-size:14px;font-weight:700;margin-bottom:4px">Intermediate (12 projects)</div>
+   <p class="small muted">Transformers, fine-tuning, RAG, agents, deployments</p>
+   <div class="mastery-meter" style="margin-top:12px"><div class="mastery-fill" style="width:0%;background:var(--a2)"></div></div>
+  </div>
+  <div class="card">
+   <div style="font-size:18px;margin-bottom:8px">🔴</div>
+   <div style="font-size:14px;font-weight:700;margin-bottom:4px">Advanced (15 projects)</div>
+   <p class="small muted">Custom kernels, distributed training, research systems</p>
+   <div class="mastery-meter" style="margin-top:12px"><div class="mastery-fill" style="width:0%;background:var(--a4)"></div></div>
+  </div>
+  <div class="card">
+   <div style="font-size:18px;margin-bottom:8px">🔵</div>
+   <div style="font-size:14px;font-weight:700;margin-bottom:4px">Production (8 projects)</div>
+   <p class="small muted">Enterprise platforms, scaling, monitoring, ops</p>
+   <div class="mastery-meter" style="margin-top:12px"><div class="mastery-fill" style="width:0%;background:var(--accent)"></div></div>
+  </div>
+  <div class="card">
+   <div style="font-size:18px;margin-bottom:8px">🟣</div>
+   <div style="font-size:14px;font-weight:700;margin-bottom:4px">Research (7 projects)</div>
+   <p class="small muted">Novel methods, papers, quantum, frontier tech</p>
+   <div class="mastery-meter" style="margin-top:12px"><div class="mastery-fill" style="width:0%;background:var(--a5)"></div></div>
+  </div>
+ </div>`;
+}
+
+function rSystems(){
+ return `<h1 class="mb8">AI Systems Architecture</h1>
+ <p class="muted small mb20">Enterprise-grade systems: inference, training, monitoring, orchestration.</p>
+ <div class="g2">
+  <div class="card">
+   <div style="font-size:16px;font-weight:700;margin-bottom:12px">⚡ Inference Engines</div>
+   <div class="track-item">
+    <div class="track-icon">📦</div>
+    <div class="track-content">
+     <div class="track-title">vLLM</div>
+     <div class="track-meta">Continuous batching, PagedAttention, multi-GPU serving</div>
+    </div>
+   </div>
+   <div class="track-item">
+    <div class="track-icon">🔧</div>
+    <div class="track-content">
+     <div class="track-title">TensorRT-LLM</div>
+     <div class="track-meta">NVIDIA's production inference platform</div>
+    </div>
+   </div>
+   <div class="track-item">
+    <div class="track-icon">💻</div>
+    <div class="track-content">
+     <div class="track-title">llama.cpp</div>
+     <div class="track-meta">Local CPU inference optimization</div>
+    </div>
+   </div>
+  </div>
+  <div class="card">
+   <div style="font-size:16px;font-weight:700;margin-bottom:12px">🏗️ Training Infrastructure</div>
+   <div class="track-item">
+    <div class="track-icon">⚙️</div>
+    <div class="track-content">
+     <div class="track-title">DeepSpeed</div>
+     <div class="track-meta">ZeRO optimizer, memory efficiency, 3D parallelism</div>
+    </div>
+   </div>
+   <div class="track-item">
+    <div class="track-icon">📊</div>
+    <div class="track-content">
+     <div class="track-title">Megatron-LM</div>
+     <div class="track-meta">Tensor parallelism, pipeline parallelism, expert MoE</div>
+    </div>
+   </div>
+   <div class="track-item">
+    <div class="track-icon">🌐</div>
+    <div class="track-content">
+     <div class="track-title">Ray</div>
+     <div class="track-meta">Distributed computing, tuning, reinforcement learning</div>
+    </div>
+   </div>
+  </div>
+ </div>`;
+}
+
+function rOptimization(){
+ return `<h1 class="mb8">Model Optimization & Efficiency</h1>
+ <p class="muted small mb20">Speed up, shrink down, scale out.</p>
+ <div class="g3">
+  <div class="card">
+   <div style="font-size:16px;font-weight:700;margin-bottom:12px">📉 Quantization</div>
+   <div class="track-item">
+    <div class="track-icon">🔢</div>
+    <div class="track-content">
+     <div class="track-title">INT8/INT4 Quantization</div>
+     <div class="track-meta">GPTQ, AWQ, QuIP</div>
+    </div>
+   </div>
+   <div class="track-item">
+    <div class="track-icon">⚡</div>
+    <div class="track-content">
+     <div class="track-title">FP8 Training</div>
+     <div class="track-meta">Transformer Engine, NVIDIA approach</div>
+    </div>
+   </div>
+  </div>
+  <div class="card">
+   <div style="font-size:16px;font-weight:700;margin-bottom:12px">✂️ Pruning</div>
+   <div class="track-item">
+    <div class="track-icon">🎯</div>
+    <div class="track-content">
+     <div class="track-title">Structured Pruning</div>
+     <div class="track-meta">SparseGPT, Wanda</div>
+    </div>
+   </div>
+  </div>
+  <div class="card">
+   <div style="font-size:16px;font-weight:700;margin-bottom:12px">🎓 Distillation</div>
+   <div class="track-item">
+    <div class="track-icon">👨‍🏫</div>
+    <div class="track-content">
+     <div class="track-title">Knowledge Distillation</div>
+     <div class="track-meta">DistilBERT, TinyLlama</div>
+    </div>
+   </div>
+  </div>
+ </div>`;
+}
+
+function rResearch(){
+ return `<h1 class="mb8">🔬 Research Laboratory</h1>
+ <p class="muted small mb20">Track experiments, hypotheses, and discoveries.</p>
+ <div class="card mb20">
+  <div style="font-size:13px;font-weight:700;margin-bottom:12px">New Experiment</div>
+  <input type="text" placeholder="Experiment title…" style="margin-bottom:9px">
+  <textarea rows="4" placeholder="Hypothesis, methodology, expected results…"></textarea>
+  <div style="display:flex;justify-content:flex-end;margin-top:10px">
+   <button class="btn btn-p">Log Experiment</button>
+  </div>
+ </div>
+ <div class="card">
+  <div style="font-size:13px;font-weight:700;margin-bottom:14px">📋 Recent Experiments</div>
+  <p class="muted small" style="text-align:center;padding:40px">No experiments logged yet. Start your research journey!</p>
+ </div>`;
+}
+
+function rAnalytics(){
+ return `<h1 class="mb8">📊 Learning Analytics</h1>
+ <p class="muted small mb20">Visualize your learning journey with advanced metrics.</p>
+ <div class="g2">
+  <div class="card">
+   <div style="font-size:13px;font-weight:700;margin-bottom:14px">📈 XP Growth</div>
+   <div style="height:150px;background:var(--bg3);border-radius:8px;display:flex;align-items:flex-end;justify-content:space-around;padding:10px">
+    <div style="width:20px;height:${(S.xp/100)%100}px;background:var(--accent);border-radius:2px"></div>
+    <div style="width:20px;height:${(S.xp/100)%80}px;background:var(--a2);border-radius:2px"></div>
+    <div style="width:20px;height:${(S.xp/100)%60}px;background:var(--a3);border-radius:2px"></div>
+   </div>
+  </div>
+  <div class="card">
+   <div style="font-size:13px;font-weight:700;margin-bottom:14px">🎯 Mastery Distribution</div>
+   <p class="muted small">Your skills across all domains</p>
+   <div style="margin-top:12px">
+    ${Object.entries(TRACKS).map(([k,v])=>`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:11px">
+     <span>${v.icon}</span>
+     <div class="mastery-meter" style="flex:1;margin:0 8px"><div class="mastery-fill" style="width:${S.tracks[k]||0}%"></div></div>
+     <span>${S.tracks[k]||0}%</span>
+    </div>`).join('')}
+   </div>
+  </div>
+ </div>`;
+}
+
+function rNotes(){
+ return `<h1 class="mb8">📝 Notes & Journal</h1>
+ <p class="muted small mb20">Document insights and learning breakthroughs.</p>
+ <div class="card mb20">
+  <div style="font-size:13px;font-weight:700;margin-bottom:12px">New Note</div>
+  <input type="text" placeholder="Title…" style="margin-bottom:9px">
+  <textarea rows="5" placeholder="Your insights…"></textarea>
+  <div style="display:flex;justify-content:flex-end;margin-top:10px">
+   <button class="btn btn-p">Save Note</button>
+  </div>
+ </div>`;
+}
+
+function rSettings(){
+ return `<h1 class="mb8">⚙️ Settings</h1>
+ <div class="card">
+  <div style="font-size:13px;font-weight:700;margin-bottom:16px">Data Management</div>
+  <button class="btn btn-g" style="margin-bottom:8px">📥 Export Progress</button>
+  <button class="btn btn-g" style="margin-bottom:8px">🔄 Reset All Data</button>
+  <button class="btn btn-danger" style="margin-top:12px">⚠️ Clear Everything</button>
+ </div>`;
+}
+
+/* =============================================
+   INIT
+   ============================================= */
+document.addEventListener('DOMContentLoaded',function(){
+ loadS();updateStreak();updateTopBar();renderPage('dashboard');
+});
+</script>
+</body>
+</html>
